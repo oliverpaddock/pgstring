@@ -585,8 +585,6 @@ func CreateTable(table string, obj any, options ...string) PgString {
 			// If more than one primary key, we'll create a composite primary key
 			if len(primaryKeys) > 1 {
 				compositePrimaryKey = true
-			} else {
-				columnDef += " PRIMARY KEY"
 			}
 		}
 
@@ -630,6 +628,9 @@ func CreateTable(table string, obj any, options ...string) PgString {
 	// Add composite primary key if multiple primary keys exist
 	if compositePrimaryKey {
 		createTableSQL.WriteString(",\n    PRIMARY KEY (" + strings.Join(primaryKeys, ", ") + ")")
+	} else if len(primaryKeys) == 1 {
+		// If only one primary key, modify the existing column definition
+		createTableSQL.WriteString(",\n    PRIMARY KEY (" + primaryKeys[0] + ")")
 	}
 
 	createTableSQL.WriteString("\n)")
