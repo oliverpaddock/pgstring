@@ -549,28 +549,64 @@ func CreateTable(table string, obj any, options ...string) PgString {
 
 		// Determine SQL type based on Go type
 		var sqlType string
-		switch field.Type.Kind() {
+		fieldType := field.Type
+		isArray := false
+
+		// Check if it's a slice/array
+		if fieldType.Kind() == reflect.Slice {
+			isArray = true
+			fieldType = fieldType.Elem()
+		}
+
+		switch fieldType.Kind() {
 		case reflect.String:
 			sqlType = "TEXT"
+			if isArray {
+				sqlType = "TEXT[]"
+			}
 		case reflect.Bool:
 			sqlType = "BOOLEAN"
+			if isArray {
+				sqlType = "BOOLEAN[]"
+			}
 		case reflect.Int, reflect.Int32:
 			sqlType = "INTEGER"
+			if isArray {
+				sqlType = "INTEGER[]"
+			}
 		case reflect.Int64:
 			sqlType = "BIGINT"
+			if isArray {
+				sqlType = "BIGINT[]"
+			}
 		case reflect.Float32:
 			sqlType = "REAL"
+			if isArray {
+				sqlType = "REAL[]"
+			}
 		case reflect.Float64:
 			sqlType = "DOUBLE PRECISION"
+			if isArray {
+				sqlType = "DOUBLE PRECISION[]"
+			}
 		default:
 			// Handle special types
-			switch field.Type.String() {
+			switch fieldType.String() {
 			case "time.Time":
 				sqlType = "TIMESTAMP"
+				if isArray {
+					sqlType = "TIMESTAMP[]"
+				}
 			case "*time.Time":
 				sqlType = "TIMESTAMP"
+				if isArray {
+					sqlType = "TIMESTAMP[]"
+				}
 			default:
 				sqlType = "TEXT" // fallback
+				if isArray {
+					sqlType = "TEXT[]"
+				}
 			}
 		}
 
